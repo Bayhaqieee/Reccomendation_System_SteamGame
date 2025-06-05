@@ -31,6 +31,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import time
+import random
 
 from google.colab import drive
 drive.mount('/content/drive')
@@ -656,6 +657,26 @@ def recommend_and_evaluate_content_based(game_name, N=10):
 
 recommended_games, precision = recommend_and_evaluate_content_based(game_to_recommend, N=10)
 
+# Contoh penggunaan: Mendapatkan rekomendasi untuk game tertentu
+game_to_recommend = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+recommended_games, precision = recommend_and_evaluate_content_based(game_to_recommend, N=10)
+
+# Contoh penggunaan: Mendapatkan rekomendasi untuk game tertentu
+game_to_recommend = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+recommended_games, precision = recommend_and_evaluate_content_based(game_to_recommend, N=10)
+
+# Contoh penggunaan: Mendapatkan rekomendasi untuk game tertentu
+game_to_recommend = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+recommended_games, precision = recommend_and_evaluate_content_based(game_to_recommend, N=10)
+
+# Contoh penggunaan: Mendapatkan rekomendasi untuk game tertentu
+game_to_recommend = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+recommended_games, precision = recommend_and_evaluate_content_based(game_to_recommend, N=10)
+
 """## Model Development using Deep Content Filtering
 
 Meskipun dataset ini tidak memiliki data interaksi pengguna (seperti rating atau playtime per user) yang ideal untuk model seperti RecommenderNet, kita bisa mengadaptasi idenya.
@@ -859,12 +880,37 @@ def recommend_and_evaluate_deep_content_based(game_name, N=10, cosine_sim=cosine
 
     return recommended_games, precision_at_N
 
-# Example usage of the deep content-based recommender and evaluation
-game_to_recommend_deep = 'Portal 2' # Choose another game from your reduced dataset
+game_to_recommend_deep = 'Ozone Guardian' # Choose another game from your reduced dataset
 
 # Find a game that is definitely in the reduced dataset to test with
-# Let's pick the first game from the reduced dataframe as an example
-game_to_recommend_deep = games_df['Name'].iloc[0]
+print(f"\nTesting Deep Content-Based Recommender with: '{game_to_recommend_deep}'")
+
+recommended_games_deep, precision_deep = recommend_and_evaluate_deep_content_based(game_to_recommend_deep, N=10, cosine_sim=cosine_sim_deep)
+
+game_to_recommend_deep = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+# Find a game that is definitely in the reduced dataset to test with
+print(f"\nTesting Deep Content-Based Recommender with: '{game_to_recommend_deep}'")
+
+recommended_games_deep, precision_deep = recommend_and_evaluate_deep_content_based(game_to_recommend_deep, N=10, cosine_sim=cosine_sim_deep)
+
+game_to_recommend_deep = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+# Find a game that is definitely in the reduced dataset to test with
+print(f"\nTesting Deep Content-Based Recommender with: '{game_to_recommend_deep}'")
+
+recommended_games_deep, precision_deep = recommend_and_evaluate_deep_content_based(game_to_recommend_deep, N=10, cosine_sim=cosine_sim_deep)
+
+game_to_recommend_deep = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+# Find a game that is definitely in the reduced dataset to test with
+print(f"\nTesting Deep Content-Based Recommender with: '{game_to_recommend_deep}'")
+
+recommended_games_deep, precision_deep = recommend_and_evaluate_deep_content_based(game_to_recommend_deep, N=10, cosine_sim=cosine_sim_deep)
+
+game_to_recommend_deep = games_df['Name'].iloc[random.randint(0, len(games_df) - 1)]
+
+# Find a game that is definitely in the reduced dataset to test with
 print(f"\nTesting Deep Content-Based Recommender with: '{game_to_recommend_deep}'")
 
 recommended_games_deep, precision_deep = recommend_and_evaluate_deep_content_based(game_to_recommend_deep, N=10, cosine_sim=cosine_sim_deep)
