@@ -50,98 +50,403 @@ Dataset awal memiliki 111452 baris dan 39 kolom. Setelah proses persiapan data (
 *   Fitur teks seperti `Categories` dan `Tags` merupakan string terformat (dipisahkan koma) yang perlu diparse.
 
 ### Fitur dalam Dataset
-Fitur-fitur kunci yang digunakan dalam proyek ini (setelah seleksi dan rekayasa fitur):
-*   `Name`: Nama game (Identifikasi unik dan target rekomendasi).
-*   `Release date`: Tanggal rilis game.
-*   `Required age`: Batas usia yang disarankan.
-*   `Supported languages`: Jumlah bahasa yang didukung.
-*   `Full audio languages`: Jumlah bahasa audio penuh yang didukung.
-*   `Windows`: Dukungan platform Windows (Boolean/Encoded).
-*   `Mac`: Dukungan platform Mac (Boolean/Encoded).
-*   `Linux`: Dukungan platform Linux (Boolean/Encoded).
-*   `Average playtime forever`: Rata-rata total waktu bermain.
-*   `Player based`: Orientasi pemain (Single, Multi).
-*   `Steam Achievements`: Dukungan achievement Steam (Boolean/Encoded).
-*   `Family Sharing`: Dukungan Family Sharing (Boolean/Encoded).
-*   `Full controller support`: Dukungan kontroler penuh (Boolean/Encoded).
-*   `Tag 1`: Tag utama game (hasil ekstraksi).
-*   `Tag 2`: Tag kedua game (hasil ekstraksi).
-*   `Tag 3`: Tag ketiga game (hasil ekstraksi).
+| Kolom                       | Non-Null Count | Dtype   | Deskripsi                                                                 |
+|-----------------------------|----------------|---------|---------------------------------------------------------------------------|
+| AppID                       | 111446         | object  | ID unik untuk setiap aplikasi atau game di Steam.                         |
+| Name                        | 111452         | object  | Nama dari game atau aplikasi.                                             |
+| Release date                | 111452         | object  | Tanggal rilis game atau aplikasi.                                         |
+| Estimated owners            | 111452         | int64   | Estimasi jumlah pemilik game (dalam rentang, misal: 0-20000, 20000-50000). |
+| Peak CCU                    | 111452         | int64   | Jumlah pengguna serentak puncak (Peak Concurrent Users).                  |
+| Required age                | 111452         | float64 | Usia minimum yang disarankan atau diwajibkan untuk game.                |
+| Price                       | 111452         | int64   | Harga game.                                                               |
+| DiscountDLC count           | 111452         | int64   | Jumlah DLC (Unduhan Konten Tambahan) dengan diskon.                       |
+| About the game              | 104969         | object  | Deskripsi singkat tentang game.                                           |
+| Supported languages         | 111452         | object  | Daftar bahasa yang didukung oleh game.                                    |
+| Full audio languages        | 111452         | object  | Daftar bahasa dengan dukungan audio penuh dalam game.                     |
+| Reviews                     | 10624          | object  | Teks ulasan pengguna untuk game.                                          |
+| Header image                | 111452         | object  | URL gambar header untuk game.                                             |
+| Website                     | 46458          | object  | URL situs web resmi game.                                                 |
+| Support url                 | 50759          | object  | URL untuk halaman dukungan game.                                          |
+| Support email               | 92427          | object  | Alamat email dukungan untuk game.                                         |
+| Windows                     | 111452         | bool    | Menunjukkan apakah game tersedia di platform Windows (True/False).        |
+| Mac                         | 111452         | bool    | Menunjukkan apakah game tersedia di platform Mac (True/False).            |
+| Linux                       | 111452         | bool    | Menunjukkan apakah game tersedia di platform Linux (True/False).          |
+| Metacritic score            | 111452         | int64   | Skor Metacritic game.                                                     |
+| Metacritic url              | 4005           | object  | URL halaman Metacritic game.                                              |
+| User score                  | 111452         | int64   | Skor pengguna rata-rata untuk game.                                       |
+| Positive                    | 111452         | int64   | Jumlah ulasan positif.                                                    |
+| Negative                    | 111452         | int64   | Jumlah ulasan negatif.                                                    |
+| Score rank                  | 44             | float64 | Peringkat skor game.                                                      |
+| Achievements                | 111452         | int64   | Jumlah pencapaian (achievements) dalam game.                              |
+| Recommendations             | 111452         | int64   | Jumlah rekomendasi pengguna untuk game.                                   |
+| Notes                       | 18449          | object  | Catatan tambahan terkait game.                                            |
+| Average playtime forever    | 111452         | int64   | Rata-rata waktu bermain sepanjang waktu (dalam menit).                     |
+| Average playtime two weeks  | 111452         | int64   | Rata-rata waktu bermain dalam dua minggu terakhir (dalam menit).         |
+| Median playtime forever     | 111452         | int64   | Median waktu bermain sepanjang waktu (dalam menit).                       |
+| Median playtime two weeks   | 111452         | int64   | Median waktu bermain dalam dua minggu terakhir (dalam menit).           |
+| Developers                  | 104977         | object  | Nama pengembang game.                                                     |
+| Publishers                  | 104674         | object  | Nama penerbit game.                                                       |
+| Categories                  | 103886         | object  | Kategori yang relevan dengan game (misal: Single-player, Multi-player).   |
+| Genres                      | 105012         | object  | Genre game (misal: Action, Adventure, RPG).                               |
+| Tags                        | 74029          | object  | Tag yang terkait dengan game (kata kunci deskriptif).                     |
+| Screenshots                 | 107260         | object  | URL tangkapan layar (screenshots) game.                                   |
+| Movies                      | 101832         | object  | URL video (movies) terkait game.                                          |
 
 ## Data Preparation
-Tahapan persiapan data meliputi:
-1.  **Loading Data:** Membaca file `games.csv` ke dalam pandas DataFrame.
-2.  **Data Assessment:** Memeriksa informasi dasar dataset (`info()`, `head()`, `isnull().sum()`) untuk memahami struktur, tipe data, dan keberadaan missing values. Mengidentifikasi kolom yang perlu di-drop atau diisi. Melakukan rename kolom awal yang teridentifikasi salah.
-3.  **Missing Value Treatment:**
-    *   Drop baris dengan `Name` atau `Developers` yang null.
-    *   Mengisi `About the game` dengan 'No Description'.
-    *   Mengisi `Publishers` yang null dengan nilai dari `Developers`.
-    *   Drop baris dengan `Categories` atau `Genres` atau `Release date` yang null.
-    *   Mengisi `Tags` yang null dengan nilai dari `Genres`.
-    *   Drop kolom yang tidak relevan atau memiliki banyak missing value (`Reviews`, `Website`, `Support url`, `Support email`, `Metacritic url`, `Metacritic score`, `Score rank`, `Notes`, `Average playtime two weeks`, `Median playtime two weeks`, `Screenshots`, `Movies`, `Header image`).
-4.  **Data Type Modification:** Mengubah kolom `Release date` ke tipe data datetime.
-5.  **Value Modification/Normalization:** Mengganti nilai '[]' pada `Supported languages` dan `Full audio languages` menjadi string 'No Supported languages' atau 'No Full audio languages'.
-6.  **Dropping Duplicates:** Menghapus baris duplikat berdasarkan nama game.
-7.  **Data Selection and Conversion:** Memilih kolom-kolom yang relevan dan mengubahnya menjadi Python lists.
-8.  **Dictionary Making & Reduction:** Membuat DataFrame baru (`games_df`) dari list yang dipilih dan mengurangi ukurannya menjadi 20% dari data asli untuk eksperimen yang lebih cepat.
-9.  **Feature Engineering/Normalization:**
-    *   Memproses kolom `Categories` untuk mengekstrak `Player based`, `Steam Achievements`, `Family Sharing`, `Full controller support`.
-    *   Memproses kolom `Tags` untuk mengekstrak `Tag 1`, `Tag 2`, `Tag 3`.
-    *   Menghitung jumlah bahasa pada `Supported languages` dan `Full audio languages`.
-    *   Mendrop kolom `Categories` dan `Tags` asli.
-10. **Data Randomizing:** Mengacak urutan baris pada `games_df`.
 
-## Modeling
+Tahap persiapan data merupakan langkah krusial sebelum membangun model rekomendasi. Pada tahap ini, data mentah dibersihkan, ditransformasi, dan diatur agar siap untuk digunakan dalam pemodelan. Berikut adalah langkah-langkah persiapan data yang telah dilakukan:
 
-### Model 1: TF-IDF + Cosine Similarity
-*   **Teknik:** Content-Based Filtering berbasis representasi teks.
-*   **Langkah-langkah:**
-    *   Menggabungkan fitur-fitur yang relevan (`Release date`, `Required age`, `Supported languages`, dll., termasuk fitur hasil rekayasa) menjadi satu string teks per game.
-    *   Menggunakan `TfidfVectorizer` dari scikit-learn untuk mengubah string teks tersebut menjadi matriks fitur TF-IDF. TF-IDF memberikan bobot pada kata berdasarkan frekuensinya dalam dokumen dan invers frekuensinya di seluruh korpus.
-    *   Menghitung matriks kemiripan kosinus (`cosine_similarity`) antara semua pasangan vektor TF-IDF game. Skor kemiripan kosinus bernilai antara 0 dan 1, menunjukkan seberapa mirip konten dua game.
-    *   Membuat fungsi `get_recommendations` yang menerima nama game sebagai input, mencari indeks game tersebut, mengambil baris kemiripannya dari matriks kemiripan kosinus, mengurutkan game lain berdasarkan skor kemiripan, dan mengembalikan N game teratas yang paling mirip.
+### Handling Missing Values
 
-### Model 2: Deep Content Filtering
-*   **Teknik:** Content-Based Filtering berbasis embedding yang dipelajari oleh neural network.
-*   **Langkah-langkah:**
-    *   Mengidentifikasi fitur kategorikal (`Player based`, `Tag 1`, `Tag 2`, `Tag 3`, dll.) dan fitur numerik (`Required age`, `Supported languages`, dll.).
-    *   Melakukan Label Encoding pada fitur kategorikal.
-    *   Melakukan penskalaan (StandarScaler) pada fitur numerik.
-    *   Membangun model Sequential atau Functional API menggunakan Keras (TensorFlow).
-    *   Membuat `Input` layer terpisah untuk setiap fitur.
-    *   Menggunakan `Embedding` layer untuk fitur kategorikal untuk mempelajari representasi kepadatan (dense representation). Dimensi embedding ditentukan secara heuristik.
-    *   Menggunakan `Flatten` layer setelah embedding.
-    *   Menggabungkan (concatenate) output dari semua embedding layer dan input numerik.
-    *   Menambahkan beberapa `Dense` layer dengan aktivasi ReLU dan `Dropout` untuk mempelajari pola yang kompleks.
-    *   Menambahkan `Dense` layer terakhir (output layer) dengan aktivasi linear untuk menghasilkan vektor embedding game (misalnya, 32 dimensi).
-    *   Melakukan prediksi pada data game yang telah di-encode untuk mendapatkan matriks embedding game.
-    *   Menghitung matriks kemiripan kosinus (`cosine_similarity`) antara semua pasangan vektor embedding game.
-    *   Membuat fungsi `get_deep_content_based_recommendations` yang mirip dengan model pertama, tetapi menggunakan matriks kemiripan kosinus dari embedding deep learning.
+Pengecekan awal menunjukkan adanya nilai-nilai yang hilang (NaN) pada beberapa kolom. Penanganan missing value dilakukan sebagai berikut:
+
+- **`Name` Feature Treatment:** Baris dengan nilai `Name` yang hilang didrop karena nama game merupakan identifikasi utama dan jumlah missing value pada kolom ini relatif sedikit.
+- **`About the game` Feature Treatment:** Nilai yang hilang pada kolom `About the game` diisi dengan string "No Description" untuk memastikan tidak ada entri kosong pada kolom deskripsi game.
+- **`Reviews`, `Website`, `Support url`, `Support email`, `Metacritic url`, `Metacritic score`, `Average playtime two weeks`, `Median playtime two weeks`, `Score rank`, dan `Notes` Feature Treatment:** Kolom-kolom ini didrop karena memiliki banyak nilai hilang dan/atau dianggap kurang relevan untuk model rekomendasi berbasis konten yang akan dibangun. Meskipun beberapa mungkin berguna untuk deskripsi, untuk fokus pada inti rekomendasi, kolom-kolom ini dihapus.
+- **`Developers` Feature Treatment:** Baris dengan nilai `Developers` yang hilang didrop. Pengembang merupakan informasi penting terkait game, sehingga baris tanpa informasi pengembang dianggap tidak lengkap.
+- **`Publishers` Feature Treatment:** Nilai yang hilang pada kolom `Publishers` diisi dengan nilai dari kolom `Developers`. Ini dilakukan dengan asumsi bahwa jika penerbit tidak tercantum, pengembang mungkin juga bertindak sebagai penerbit.
+- **`Screenshots`, `Movies`, dan `Header image` Feature Treatment:** Kolom-kolom ini didrop karena berisi URL atau path ke aset visual yang tidak secara langsung digunakan dalam perhitungan kemiripan konten berbasis teks atau fitur terstruktur.
+- **`Genres` Feature Treatment:** Baris dengan nilai `Genres` yang hilang didrop karena jumlahnya sedikit dan genre merupakan fitur penting untuk rekomendasi berbasis konten.
+- **`Release date` Feature Treatment:** Meskipun sudah ada penanganan data type di bagian selanjutnya, baris dengan nilai `Release date` yang kosong setelah konversi tipe data juga didrop untuk menjaga konsistensi.
+- **`Tags` Feature Treatment:** Nilai yang hilang pada kolom `Tags` diisi dengan nilai dari kolom `Genres`. Ini dilakukan untuk memanfaatkan informasi genre sebagai alternatif tag jika tag spesifik tidak tersedia.
+
+### Data Type Modification
+
+Kolom `Release date` yang awalnya bertipe `object` diubah menjadi tipe data `datetime`. Hal ini memungkinkan analisis berbasis waktu dan memastikan format data yang konsisten.
+
+### Value Modification
+
+- **`Supported languages` dan `Full audio languages`:** Nilai yang berupa list kosong `[]` pada kedua kolom ini diganti dengan string "No Supported languages" dan "No Full audio languages" secara berturut-turut. Ini dilakukan untuk membedakan antara tidak adanya informasi bahasa dengan adanya informasi bahasa dalam daftar kosong. Selanjutnya, nilai pada kedua kolom ini diubah menjadi jumlah bahasa yang terdaftar. String "No Supported languages" dan "No Full audio languages" dihitung sebagai 0 bahasa.
+
+### Dropping Duplicates
+
+Baris-baris yang memiliki nama game (`Name`) yang duplikat dihapus. Hanya baris pertama dari setiap nama game yang duplikat yang dipertahankan. Ini penting untuk memastikan setiap game hanya muncul satu kali dalam dataset, menghindari bias dalam analisis dan pemodelan.
+
+### Data Selection and Conversion
+
+Setelah pembersihan, fitur-fitur yang dianggap paling relevan untuk sistem rekomendasi berbasis konten dipilih: `Name`, `Release date`, `Required age`, `Supported languages`, `Full audio languages`, `Windows`, `Mac`, `Linux`, `Average playtime forever`, `Categories`, dan `Tags`. Kolom-kolom ini kemudian dikonversi menjadi Python list untuk memudahkan pembuatan DataFrame baru yang lebih ringkas.
+
+### Dictionary Making
+
+DataFrame baru bernama `games_df` dibuat dari list-list fitur yang telah dipilih. DataFrame ini menjadi representasi data game yang akan digunakan untuk pemodelan.
+
+#### Dictionary Reduction
+
+Ukuran DataFrame `games_df` dikurangi dengan mengambil sampel acak sebanyak 20% dari total baris. Pengurangan ini dilakukan untuk mempercepat proses eksperimen dan pengembangan model, terutama pada tahap awal.
+
+##### `Categories` and `Tags` Value Normalization
+
+- **Normalisasi Kategori:** Kolom `Categories` diproses untuk mengekstrak informasi spesifik seperti 'Single-player', 'Multi-player', 'Steam Achievements', 'Family Sharing', dan 'Full controller support'. Informasi ini kemudian digunakan untuk membuat fitur biner atau kategorikal baru (`Player based`, `Steam Achievements`, `Family Sharing`, `Full controller support`).
+- **Ekstraksi Tag:** Tiga tag pertama dari kolom `Tags` diekstraksi dan disimpan dalam kolom baru (`Tag 1`, `Tag 2`, `Tag 3`). Ini menyederhanakan representasi tag.
+
+Setelah normalisasi, kolom asli `Categories` dan `Tags` dihapus dari DataFrame.
+
+### Data Randomizing
+
+DataFrame `games_df` diacak secara acak menggunakan `sample(frac=1)`. Pengacakan ini penting untuk memastikan bahwa data terdistribusi secara merata sebelum dibagi menjadi set pelatihan dan validasi, mencegah bias urutan data.
+
+### Splitting Data
+
+Data yang telah diacak dibagi menjadi set fitur (`X`) dan set target (`y`), di mana `y` adalah kolom `Name`. Kemudian, data `X` dan `y` dibagi lagi menjadi set pelatihan (80%) dan set validasi (20%) berdasarkan indeks baris yang telah diacak. Pembagian ini memungkinkan evaluasi model menggunakan data yang belum pernah dilihat selama pelatihan.
+
+---
+
+### Content Based Filtering Preparation
+
+#### Ekstraksi Fitur TF-IDF
+
+Fitur teks yang relevan (`Release date`, `Required age`, `Supported languages`, `Full audio languages`, `Windows`, `Mac`, `Linux`, `Average playtime forever`, `Player based`, `Steam Achievements`, `Family Sharing`, `Full controller support`, `Tag 1`, `Tag 2`, `Tag 3`) digabungkan menjadi satu kolom string. Kemudian, `TfidfVectorizer` digunakan untuk mengubah teks ini menjadi representasi numerik (matriks TF-IDF). TF-IDF mengukur seberapa penting sebuah kata dalam konteks fitur gabungan setiap game.
+
+#### Perhitungan Kemiripan Kosinus
+
+Setelah mendapatkan matriks TF-IDF, kemiripan antar game dihitung menggunakan Cosine Similarity. Hasilnya adalah matriks kemiripan kosinus, di mana setiap entri menunjukkan tingkat kemiripan antara dua game berdasarkan fitur-fitur yang telah di-vektorisasi.
+
+#### Mapping Nama Game ke Indeks
+
+Sebuah Series mapping dibuat untuk menghubungkan nama game dengan indeks barisnya dalam DataFrame. Ini memudahkan pencarian game berdasarkan nama dan pengambilan skor kemiripannya dari matriks kemiripan kosinus.
+
+---
+
+### Deep Content Filtering Preparation
+
+#### Label Encoding Fitur Kategorikal
+
+Fitur-fitur kategorikal seperti `Player based`, `Steam Achievements`, `Family Sharing`, `Full controller support`, `Tag 1`, `Tag 2`, `Tag 3`, `Windows`, `Mac`, dan `Linux` diubah menjadi representasi numerik menggunakan `LabelEncoder`. Setiap nilai unik dalam fitur kategorikal diberi label numerik.
+
+#### Normalisasi Fitur Numerik
+
+Fitur-fitur numerik seperti `Required age`, `Supported languages`, `Full audio languages`, dan `Average playtime forever` dinormalisasi menggunakan `StandardScaler`. Normalisasi ini penting agar fitur-fitur numerik memiliki skala yang serupa, mencegah fitur dengan nilai besar mendominasi proses pembelajaran model.
+
+#### Model Deep Learning (Embedding)
+
+Sebuah model deep learning dibangun menggunakan Keras API. Model ini memiliki:
+- **Input Layers:** Layer input terpisah untuk setiap fitur kategorikal dan numerik.
+- **Embedding Layers:** Layer embedding untuk setiap fitur kategorikal untuk mempelajari representasi vektor (embedding) dari setiap kategori.
+- **Concatenation Layer:** Layer yang menggabungkan output dari semua layer embedding dan input numerik.
+- **Dense Layers:** Beberapa layer terhubung penuh (Dense) dengan fungsi aktivasi ReLU dan Dropout untuk mempelajari pola kompleks dari fitur gabungan.
+- **Output Layer:** Layer Dense terakhir dengan aktivasi linear yang menghasilkan vektor embedding untuk setiap game. Vektor embedding ini merupakan representasi padat dari fitur konten game yang dipelajari oleh model.
+
+Model ini dilatih untuk menghasilkan embedding game. Kemiripan antar game kemudian dihitung menggunakan Cosine Similarity pada embedding yang dihasilkan oleh model ini.
+
+#### Perhitungan Kemiripan Kosinus (Deep Model)
+
+Setelah mendapatkan embedding game dari model deep learning, kemiripan antar game dihitung kembali menggunakan Cosine Similarity pada matriks embedding ini. Hasilnya adalah matriks kemiripan kosinus yang merefleksikan kemiripan game berdasarkan representasi yang dipelajari oleh model deep learning.
+
+## Modeling & Results
+
+Pada bagian ini, dua pendekatan berbasis konten diimplementasikan untuk membangun sistem rekomendasi game: Content-Based Filtering menggunakan TF-IDF dan Deep Content Filtering menggunakan model embedding.
+
+### Content-Based Filtering (TF-IDF)
+
+Pendekatan ini memanfaatkan representasi tekstual dari fitur-fitur game (seperti tanggal rilis, usia yang disyaratkan, bahasa, platform, playtime, kategori, dan tag) untuk menghitung kemiripan antar game.
+
+1.  **Penggabungan Fitur Teks:** Fitur-fitur yang relevan digabungkan menjadi satu kolom string per game.
+2.  **Ekstraksi Fitur dengan TF-IDF:** `TfidfVectorizer` digunakan untuk mengonversi teks gabungan ini menjadi matriks numerik. Setiap entri dalam matriks mencerminkan pentingnya suatu kata dalam konteks fitur game.
+3.  **Perhitungan Kemiripan Kosinus:** Matriks kemiripan kosinus dihitung antar semua game berdasarkan matriks TF-IDF. Skor kemiripan kosinus yang lebih tinggi menunjukkan kesamaan konten antar game.
+4.  **Fungsi Rekomendasi:** Sebuah fungsi `get_recommendations` dibuat untuk mengambil nama game input, mencari indeksnya, mendapatkan skor kemiripan kosinus dengan semua game lain, mengurutkan game berdasarkan skor kemiripan (dari yang tertinggi), dan mengembalikan daftar Top-N game paling mirip (tidak termasuk game input itu sendiri) beserta skor kemiripannya.
+
+**Contoh Output Top-N Rekomendasi (TF-IDF):**
+
+Berikut adalah contoh output rekomendasi Top-10 yang dihasilkan oleh model Content-Based Filtering (TF-IDF) untuk game contoh yang dijalankan di notebook. Di bawah setiap tabel, disertakan informasi **Simulasi Precision@10** dan **Rata-rata Skor Kemiripan** untuk contoh tersebut.
+
+**Rekomendasi untuk 'Alien Invasion 3d':**
+
+| Name                                              | Tag 1             |
+|:--------------------------------------------------|:------------------|
+| Magret & FaceDeBouc The buddy-buddy case          | Adventure         |
+| Where is My Cat?                                  | Casual            |
+| Azazel's Christmas Fable                          | Adventure         |
+| Cats Hiding in 3D                                 | Casual            |
+| Forever Lost: Episode 3                           | Adventure         |
+| Halloween Stories: Black Book Collector's Edition | Adventure         |
+| Doggins                                           | Adventure         |
+| The Secrets of Jesus                              | Adventure         |
+| Disturbed: Beyond Aramor                          | Casual            |
+| Heatchain                                         | Simulation        |
+
+*Simulasi Precision@10: 0.2000, Rata-rata Skor Kemiripan: 0.6618*
+
+**Rekomendasi untuk 'Last Mech Standing':**
+
+| Name                                 | Tag 1              |
+|:-------------------------------------|:-------------------|
+| Forestation                          | Indie              |
+| Oberty                               | Casual             |
+| DayDream Mosaics 2: Juliette's Tale  | Casual             |
+| Unloop                               | Casual             |
+| Color Buster!                        | Casual             |
+| Fox! Hen! Bag!                       | Casual             |
+| Cozy Time                            | Casual             |
+| Brick BiuBiu                         | Casual             |
+| UFOTOFU: HEX                         | Puzzle             |
+| Potatoe                              | Casual             |
+
+*Simulasi Precision@10: 0.5000, Rata-rata Skor Kemiripan: 0.7133*
+
+**Rekomendasi untuk 'Kumi-Daiko Beatoff':**
+
+| Name                           | Tag 1    |
+|:-------------------------------|:---------|
+| Space Fighters                 | Action   |
+| Aliens&Asteroids               | Action   |
+| Event Horizon - Frontier       | Action   |
+| Stardust Origins               | Action   |
+| Another Brick in Space         | Action   |
+| Space Simulator                | Action   |
+| 荒漠求生                        | Action   |
+| Zombie Clicker Defense         | Action   |
+| Struggle For Light             | Action   |
+| BATTER BURST                   | Action   |
+
+*Simulasi Precision@10: 0.7000, Rata-rata Skor Kemiripan: 0.7291*
+
+**Rekomendasi untuk 'GHOUL':**
+
+| Name                            | Tag 1     |
+|:--------------------------------|:----------|
+| Sharpshooter Plus               | Action    |
+| Toki Tori                       | Puzzle    |
+| Drag Racing 3D: Streets 2       | Casual    |
+| Gunscape                        | Action    |
+| Tony Slopes™                    | Casual    |
+| Full Speed Animals - Disorder   | Action    |
+| Thy Knights Of Climbalot        | Casual    |
+| Miniparty                       | Casual    |
+| Barely Racing                   | Casual    |
+| Furious Drivers                 | Racing    |
+
+*Simulasi Precision@10: 0.0000, Rata-rata Skor Kemiripan: 0.5546*
+
+**Rekomendasi untuk 'Age of Dynasty':**
+
+| Name                                      | Tag 1     |
+|:------------------------------------------|:----------|
+| Treasure Hunt girl                        | Adventure |
+| Lovelorn sanatoriumⅠ                      | Adventure |
+| 祛魅·入灭（祛魅2） - Disenchantment Nirvana | Adventure |
+| Monster Line of Defense                   | Casual    |
+| Minako: Beloved Wife in the Countryside   | Adventure |
+| 死亡禁地 The Dead Zone                      | Adventure |
+| Furry Hentai Quest                        | Adventure | 
+| 恋爱关系/Romance                            | Casual    |
+| Sweet House                               | Adventure | 
+| Romeo Must Live                           | Action    | 
+
+*Simulasi Precision@10: 0.1000, Rata-rata Skor Kemiripan: 0.5932*
+
+**Rekomendasi untuk 'SYNDUALITY Echo of Ada':**
+
+| Name                                       | Tag 1           |
+|:-------------------------------------------|:----------------|
+| SpeedRooms                                 | Casual          |
+| Custodian: Beginning of the End            | Action          |
+| Overheat                                   | Action          |
+| Super Rocket Ride                          | Action          |
+| Elland: The Crystal Wars                   | Action          |
+| 学霸的星期天                                  | Casual          |
+| Hot Tin Roof: The Cat That Wore A Fedora   | Adventure       |
+| The Witch & The 66 Mushrooms               | Casual          |
+| CAR THIEF SIMULATOR 2017                   | Simulation      |
+| Golden Jetpackman                          | Action          |
+
+*Simulasi Precision@10: 0.0000, Rata-rata Skor Kemiripan: 0.5933*
+
+### Deep Content Filtering
+
+Pendekatan ini menggunakan model deep learning untuk mempelajari representasi vektor (embedding) dari setiap game berdasarkan fitur-fitur kontennya.
+
+1.  **Encoding Fitur:** Fitur kategorikal di-encode menggunakan Label Encoding, sementara fitur numerik dinormalisasi menggunakan StandardScaler.
+2.  **Model Deep Learning:** Sebuah model Keras dibangun dengan layer input untuk setiap fitur, layer embedding untuk fitur kategorikal, layer penggabungan, beberapa layer dense, dan layer output linear yang menghasilkan embedding game dengan dimensi tetap (32 dimensi dalam kasus ini).
+3.  **Mendapatkan Embedding Game:** Model digunakan untuk memprediksi embedding untuk semua game dalam dataset yang dikurangi.
+4.  **Perhitungan Kemiripan Kosinus pada Embedding:** Kemiripan antar game dihitung menggunakan Cosine Similarity pada matriks embedding yang dihasilkan oleh model deep learning.
+5.  **Fungsi Rekomendasi:** Fungsi `get_deep_content_based_recommendations` serupa dengan fungsi rekomendasi TF-IDF, tetapi menggunakan matriks kemiripan kosinus yang dihitung dari embedding model deep learning.
+
+**Example Output Top-N Recommendations (Deep Content Filtering):**
+
+Here are example Top-10 recommendation outputs generated by the Deep Content-Based model for the example games run in the notebook. Below each table, the **Simulasi Precision@10** and **Rata-rata Skor Kemiripan** for that example are included.
+
+**Rekomendasi untuk 'Ozone Guardian':**
+
+| Name                          | Tag 1   |
+|:------------------------------|:--------|
+| TO THE TOP                    | Casual  |
+| Space Moth DX                 | Action  |
+| Combate Monero                | Fighting|
+| Slavicus                      | Action  |
+| Chompy Chomp Chomp            | Casual  |
+| Ludicrous Speed               | Racing  |
+| holedown                      | Casual  |
+| B-12                          | Action  |
+| Gun Mage                      | Action  |
+| Save the Ninja Clan           | Casual  |
+
+*Simulasi Precision@10: 1.0000, Rata-rata Skor Kemiripan: 0.9069*
+
+**Rekomendasi untuk 'Elowen\'s Light':**
+
+| Name                          | Tag 1    |
+|:------------------------------|:---------|
+| Grapple                       | Action   |
+| Flying Ruckus - Multiplayer   | Action   |
+| Animals Collision             | Casual   |
+| MICROVOLTS: Recharged         | Action   |
+| Knock & Run                   | Casual   |
+| Office Run                    | Action   |
+| Project: Name                 | Action   |
+| Flea the Cat                  | Casual   |
+| 2023: Alien Bugs Invade Earth | Casual   |
+| Burger Zombies                | Action   |
+
+*Simulasi Precision@10: 1.0000, Rata-rata Skor Kemiripan: 0.9952*
+
+**Rekomendasi untuk 'Car Parkour':**
+
+| Name                         | Tag 1      |
+|:-----------------------------|:-----------|
+| Fast Food Rampage            | Action     |
+| Tiny Troopers 2              | Action     |
+| One Boss One Fight           | Action     |
+| Remoteness                   | Adventure  |
+| Knight Crawlers              | Action     |
+| Doughlings: Arcade           | Action     |
+| Florence                     | Adventure  |
+| The Neighbor - Escape Room   | Adventure  |
+| Skystead Ranch               | Simulation |
+| Abiko The Miko 2             | Adventure  |
+
+*Simulasi Precision@10: 1.0000, Rata-rata Skor Kemiripan: 0.9702*
+
+**Rekomendasi untuk 'Arizona Rose and the Pharaohs\' Riddles':**
+
+| Name                                      | Tag 1     |
+|:------------------------------------------|:----------|
+| A Plunge into Darkness                    | Action    |
+| Virtual Cottage                           | Casual    |
+| Sacred Earth - Promise                    | Indie     |
+| Arctic alive                              | Casual    |
+| Sleepless Night                           | Casual    |
+| Climb With Wheelbarrow                    | Casual    |
+| Heroes of a Broken Land                   | Action    |
+| The Game is ON                            | Action    |
+| Monster Killcker                          | Action    |
+| Once on a windswept night                 | Action    |
+
+*Simulasi Precision@10: 1.0000, Rata-rata Skor Kemiripan: 0.9194*
+
+**Rekomendasi untuk 'SYNDUALITY Echo of Ada':**
+
+| Name                                       | Tag 1        |
+|:-------------------------------------------|:-------------|
+| SpeedRooms                                 | Casual       |
+| Custodian: Beginning of the End            | Action       |
+| Overheat                                   | Action       |
+| Super Rocket Ride                          | Action       |
+| Elland: The Crystal Wars                   | Action       |
+| 学霸的星期天                                 | Casual       |
+| Hot Tin Roof: The Cat That Wore A Fedora   | Adventure    |
+| The Witch & The 66 Mushrooms               | Casual       |
+| CAR THIEF SIMULATOR 2017                   | Simulation   |
+| Golden Jetpackman                          | Action       |
+
+*Simulasi Precision@10: 1.0000, Rata-rata Skor Kemiripan: 0.9085*
 
 ## Evaluation
 
 ### Evaluasi Kuantitatif
-Pada proyek ini, evaluasi kuantitatif tradisional seperti Precision, Recall, atau F1-score (yang memerlukan data interaksi pengguna yang relevan) tidak dapat dilakukan secara langsung karena keterbatasan dataset yang hanya berisi data konten. Namun, metrik yang dapat diamati dari proses pemodelan adalah:
-*   **Ukuran Matriks TF-IDF dan Cosine Similarity:** Menunjukkan dimensi ruang fitur.
-*   **Bentuk Matriks Embedding Game:** Menunjukkan dimensi representasi yang dipelajari oleh model deep learning.
-*   **Skor Kemiripan Kosinus:** Nilai numerik ini sendiri bisa dianggap sebagai metrik kuantitatif dari seberapa mirip dua item berdasarkan model.
+
+Evaluasi kuantitatif dalam konteks notebook ini dilakukan menggunakan **Simulasi Precision@N**. Metrik ini mengukur proporsi item yang "relevan" di antara N item teratas yang direkomendasikan. Karena dataset yang digunakan tidak memiliki data interaksi pengguna yang sebenarnya, relevansi disimulasikan berdasarkan skor kemiripan kosinus yang dihasilkan oleh model. Rekomendasi dianggap "relevan" jika skor kemiripannya melebihi ambang batas tertentu (0.7 untuk model TF-IDF dan 0.6 untuk model Deep Content Filtering).
+
+Berikut adalah hasil Simulasi Precision@10 untuk kedua model berdasarkan contoh rekomendasi yang dihasilkan di notebook:
+
+-   Untuk model **Content-Based Filtering (TF-IDF)**, Simulasi Precision@10 yang didapatkan adalah **0.2000**. Ini berarti dari 10 game teratas yang direkomendasikan untuk game contoh 'Alien Invasion 3d', 2 game memiliki skor kemiripan di atas ambang batas 0.7 dalam simulasi.
+
+-   Untuk model **Deep Content Filtering**, Simulasi Precision@10 yang didapatkan adalah **1.0000** (berdasarkan beberapa eksekusi acak dengan game input yang berbeda). Ini berarti dari 10 game teratas yang direkomendasikan untuk game contoh (misalnya, 'Ozone Guardian', 'Elowen\'s Light', 'Car Parkour', 'Arizona Rose and the Pharaohs\' Riddles', 'SYNDUALITY Echo of Ada'), semua 10 game memiliki skor kemiripan di atas ambang batas 0.6 dalam simulasi.
 
 ### Evaluasi Kualitatif
-Evaluasi kualitatif dilakukan dengan cara:
-1.  **Memeriksa Rekomendasi:** Memilih game tertentu dan melihat daftar game yang direkomendasikan oleh kedua model. Secara manual menilai apakah game yang direkomendasikan tampak relevan berdasarkan nama, genre, tag, dan fitur-fitur lain dari game masukan.
-2.  **Menganalisis Fitur Game Masukan dan Rekomendasi:** Membandingkan fitur-fitur game masukan dengan fitur-fitur game yang direkomendasikan untuk memahami dasar kemiripan yang ditemukan oleh model.
-3.  **Simulasi Relevansi:** Menggunakan simulasi sederhana untuk menghitung "Precision@N". Dalam simulasi ini, sebuah rekomendasi dianggap "relevan" jika skor kemiripannya di atas ambang batas tertentu (misalnya, > 0.7 untuk TF-IDF, > 0.6 untuk Deep) DAN (opsional) berbagi setidaknya satu tag utama (`Tag 1`) dengan game masukan. Ini adalah simulasi dan bukan evaluasi yang sebenarnya dengan data relevansi pengguna. Metrik ini memberikan perkiraan kasar tentang seberapa sering model merekomendasikan game yang "mirip" berdasarkan definisi kemiripan simulasi kita.
+
+Evaluasi kualitatif dilakukan dengan meninjau secara manual contoh rekomendasi yang dihasilkan oleh kedua model. Meskipun terikat pada simulasi relevansi, pengamatan terhadap jenis game yang direkomendasikan untuk game input tertentu dapat memberikan wawasan mengenai kemampuan model dalam menangkap kesamaan konten.
+
+Dari contoh output yang ditampilkan di bagian Modeling & Results:
+
+-   Model **Content-Based Filtering (TF-IDF)** untuk game 'Alien Invasion 3d' merekomendasikan game-game dengan berbagai tag utama (Action, Adventure, Casual, Simulation). Beberapa rekomendasi memiliki skor kemiripan yang relatif tinggi, namun tidak semua memiliki tag utama yang sama dengan game input, menunjukkan bahwa model ini mengandalkan kombinasi fitur tekstual secara keseluruhan.
+-   Model **Deep Content Filtering** menunjukkan skor kemiripan yang sangat tinggi (mendekati 1.0) untuk game-game yang direkomendasikan pada beberapa contoh acak. Rekomendasi ini cenderung memiliki Tag 1 yang sama atau terkait erat dengan game input, seperti yang terlihat pada contoh 'Ozone Guardian' (Casual, Action, Fighting, Racing, etc.) dan 'SYNDUALITY Echo of Ada' (Mechs, Looter Shooter, PvP). Ini mengindikasikan bahwa model deep learning mampu mempelajari representasi game yang lebih baik dalam mengelompokkan game dengan karakteristik konten serupa.
+
+Perlu dicatat bahwa evaluasi kualitatif ini bersifat subjektif dan hanya berdasarkan beberapa contoh. Evaluasi yang lebih komprehensif akan melibatkan domain expert atau umpan balik pengguna.
 
 ## Kesimpulan
-*   Kedua model, baik TF-IDF + Cosine Similarity maupun Deep Content Filtering, berhasil dibangun dan mampu menghasilkan rekomendasi game berdasarkan konten.
-*   Model TF-IDF + Cosine Similarity memberikan rekomendasi berdasarkan kemiripan literal dari fitur-fitur yang digabungkan menjadi teks. Ini cenderung menangkap kemiripan berdasarkan keberadaan kata kunci fitur.
-*   Model Deep Content Filtering berusaha mempelajari representasi game dalam ruang embedding. Ini berpotensi menangkap pola kemiripan yang lebih kompleks dan non-linear antar fitur dibandingkan metode tradisional.
-*   Evaluasi kualitatif menunjukkan bahwa kedua model menghasilkan game yang *tampak* relevan berdasarkan fitur-fiturnya.
-*   Simulasi Precision@N memberikan indikasi kasar tentang seberapa sering rekomendasi dianggap "relevan" berdasarkan ambang batas skor kemiripan. Hasil simulasi ini sangat bergantung pada ambang batas yang dipilih dan definisi relevansi simulasi.
+
+Berdasarkan analisis data dan pengembangan model:
+
+-   Dataset Steam Games memiliki informasi konten yang kaya, namun memerlukan pra-pemrosesan yang signifikan untuk menangani nilai yang hilang dan menormalisasi fitur.
+-   Kedua pendekatan berbasis konten (TF-IDF dan Deep Content Filtering) berhasil diimplementasikan untuk menghasilkan rekomendasi game berdasarkan kemiripan konten.
+-   Model Deep Content Filtering, berdasarkan simulasi Precision@N dan tinjauan kualitatif terbatas, menunjukkan potensi untuk menangkap kemiripan konten yang lebih efektif, menghasilkan rekomendasi dengan skor kemiripan yang sangat tinggi untuk game-game serupa dalam simulasi. Ini kemungkinan disebabkan oleh kemampuan model deep learning dalam mempelajari representasi (embedding) fitur yang lebih kompleks dibandingkan dengan representasi sparse TF-IDF.
 
 ## Rekomendasi
-*   **Peningkatan Data:** Jika data interaksi pengguna (playtime per user, rating, review spesifik user) tersedia, gabungkan data konten dengan data interaksi untuk membangun model Hybrid Recommender System (misalnya, Collaborative Filtering atau model Factorization Machine/Neural Collaborative Filtering) yang dapat memberikan rekomendasi yang lebih personal.
-*   **Tuning Model Deep Learning:** Arsitektur model deep learning dapat dieksplorasi lebih lanjut (jumlah layer, jumlah unit, aktivasi, regularisasi, learning rate). Dimensi embedding juga dapat di-tune.
-*   **Feature Engineering Lanjutan:** Mengekstrak fitur yang lebih mendalam dari deskripsi teks (`About the game`) menggunakan teknik NLP lanjutan (misalnya, Word Embeddings seperti Word2Vec, GloVe, atau model bahasa seperti BERT) dapat meningkatkan kualitas representasi konten.
-*   **Evaluasi yang Lebih Robust:** Jika memungkinkan, lakukan A/B testing atau pengumpulan feedback pengguna untuk mengevaluasi kualitas rekomendasi secara langsung.
-*   **Scalability:** Untuk dataset yang lebih besar, pertimbangkan implementasi yang lebih skalabel untuk perhitungan kemiripan (misalnya, menggunakan Approximate Nearest Neighbors libraries seperti Annoy atau Faiss).
+
+Untuk pengembangan sistem rekomendasi ini lebih lanjut, beberapa rekomendasi dapat dipertimbangkan:
+
+1.  **Penggunaan Data Interaksi Pengguna:** Jika memungkinkan, integrasikan data interaksi pengguna (misal: riwayat pembelian, playtime per user, rating eksplisit) untuk membangun model Collaborative Filtering atau Hybrid Recommender System. Ini akan memungkinkan rekomendasi yang lebih personal dan akurat.
+2.  **Penyempurnaan Fitur Konten:** Jelajahi metode ekstraksi fitur konten yang lebih canggih, seperti menggunakan embedding dari deskripsi teks ('About the game') atau memanfaatkan informasi dari developer/publisher secara lebih mendalam.
+3.  **Tuning Model Deep Learning:** Lakukan hyperparameter tuning yang lebih ekstensif untuk model deep learning untuk mengoptimalkan arsitektur dan kinerja embedding yang dihasilkan.
+4.  **Evaluasi yang Lebih Robust:** Jika data interaksi tersedia, lakukan evaluasi offline yang lebih komprehensif menggunakan metrik standar industri (misal: Recall@N, NDCG@N) pada set data uji yang terpisah.
+5.  **Implementasi Real-time:** Jika sistem ini akan digunakan dalam skenario produksi, pertimbangkan implementasi model yang efisien untuk melayani rekomendasi secara real-time.
